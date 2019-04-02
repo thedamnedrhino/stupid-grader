@@ -8,12 +8,13 @@ def has(string, keywords):
 			return True
 	return False
 
-def check_grades(folder):
+def check_grades(folder, p=True):
 	f = None	
 	try:
 		f = open("{}/TestDriver.c".format(folder), 'r')
 	except FileNotFoundError:
 		print("{}/TestDriver.c not found".format(folder))
+		return {'sum': 0, 'not_found': True}
 	
 	grades = {'add': 0, 'compute': 0, 'print': 0, 'destroy': 0}
 	for line in f:
@@ -29,11 +30,46 @@ def check_grades(folder):
 
 	grades['sum'] = sum(grades.values())
 	grades['name'] = folder
-	print(grades)
+	if p:
+		print(grades)
+	return grades
+
+def read_json(fname):
+	import json
+	with open(fname) as f:
+		data = json.load(f)
+	return data
+
+def dump_json(data, f):
+	import json
+	with open(f, 'w') as file:
+		json.dump(data, file, indent=4)
+		print("data written to {}".format(file))	
 
 if __name__ == '__main__':
 	folder = sys.argv[1]
-	check_grades(folder)
+	if 'json' in folder:
+		data = read_json(folder)
+		d = sys.argv[2]
+		grades = {}
+		for name in os.listdir(d):
+			if not os.path.isdir("{}/{}".format(d, name)):
+				continue
+			g = check_grades("{}/{}".format(d, name), p=False)
+			grades[name] = g['sum']
+			print(g['sum'])
+		for l, e in enumerate(data["marks"]):
+			name = e["userid"]
+			if name in grades:
+				e["testing"]["mark"] += grades[name]
+			data["marks"][l] = e
+			print("{}, {}, {}".format(name, e["testing"]["mark"], grades[name]))
+		dump_json(data, 'new_marks.json')
+				
+		# base = sys.argv[2]
+		# for name in os	
+	else:
+		check_grades("{}/{}", base, folder)
 		
 
 	
